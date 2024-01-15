@@ -1,0 +1,71 @@
+---
+title: "Untitled"
+format: html
+editor: visual
+---
+
+```{r}
+library(tidyverse)
+library(reshape2) 
+library(sqldf) 
+library(patchwork)
+
+```
+
+```{r}
+draft <- read_csv("~/lec_statistics-slam-dunk/statisticsplaybook-main_rawdata-by-author/draft.csv")
+
+dim(draft)
+
+```
+
+```{r}
+draft <- select(draft, -c(3,4,16:24))
+draft <- draft[-c(90,131),]
+
+```
+
+```{r}
+draft$Year <- as.factor(draft$Year) 
+draft$Tm <- as.factor(draft$Tm) 
+draft$Born <- as.factor(draft$Born) 
+draft$From <- as.factor(draft$From) 
+draft$To <- as.factor(draft$To)
+```
+
+```{r}
+mutate(draft, Born2 = ifelse(Born == "us", "USA", "World")) -> draft draft$Born2 <- as.factor(draft$Born2)
+```
+
+```{r}
+draft$College[is.na(draft$College)] <- 0 
+mutate(draft, College2 = ifelse(College == 0, 0, 1)) -> draft 
+draft$College2 <- as.factor(draft$College2)
+```
+
+
+```{r}
+levels(as.factor(draft$pos))
+## [1] "C" "C-F" "F" "F-C" "F-G" "G" "G-F"
+
+draft$Pos2 <- draft$Pos 
+draft$Pos2 <- recode(draft$Pos2,
+                     "C" = "Center",
+                     "C-F" = "Big",
+                     "F" = "Forward",
+                     "F-C" = "Big",
+                     "F-G" = "Swingman",
+                     "G" = "Guard",
+                     "G-F" = "Swingman") 
+draft$Pos <- as.factor(draft$Pos) 
+
+draft$Pos2 <- as.factor(draft$Pos2) 
+levels(draft$Pos2)
+## [1] "Big" "Center" "Forward" "Guard" "Swingman"
+```
+
+
+```{r}
+sqldf("SELECT min(WS), Player, Tm, Pk, Year FROM draft")
+```
+
